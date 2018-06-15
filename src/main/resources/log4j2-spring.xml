@@ -1,0 +1,21 @@
+<Configuration monitorInterval="60" name="log" packages="com.rizzutih.logging">
+    <Appenders>
+        <Console name="Console-Appender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %reqId [%t] %c{1} - %msg%n}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=black, DEBUG=green bold, TRACE=blue}"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.springframework" level="info" additivity="false">
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <Logger name="com.rizzutih" level="info" additivity="false">
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <logger name="com.ynap.customercredit.filters.RequestLoggingFilter">
+            <level value="DEBUG" />
+        </logger>
+        <Root level="INFO">
+            <AppenderRef ref="Console-Appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

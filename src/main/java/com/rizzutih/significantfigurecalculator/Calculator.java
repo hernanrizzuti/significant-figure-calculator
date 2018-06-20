@@ -7,6 +7,7 @@ import java.math.MathContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -14,22 +15,26 @@ import static java.util.Objects.nonNull;
 /**
  * Created by h.rizzuti on 15/06/2018.
  */
-public class SignificantFigureConverter {
+public class Calculator {
 
     private NumberInfo numberInfo;
 
-    public SignificantFigureConverter() {
-        numberInfo = new NumberInfo();
+    public Calculator(final NumberInfo numberInfo) {
+        this.numberInfo = numberInfo;
     }
 
     public String resolver(final String number,
-                           final int numberOfSignificantFigures) {
+                           final String significantFigure) {
 
-        final List<String> zerosAndNumber = extractZerosBeforeSignificantFigure(number);
+        final int numberOfSignificantFigures = parseSignificantFigure(significantFigure);
+
+        final List<String> zerosAndNumber = extractZerosBeforeSignificantFigure(removeLeadingZeros(number));
 
         final String extractedZeros =  zerosAndNumber.get(0);
 
         final String strippedNumber =  zerosAndNumber.get(1);
+
+        numberInfo.setOriginalNumber(strippedNumber);
 
         final Integer digitBeforeDecimalPoint = getNumberOfDigitBeforeDecimalPlaces(strippedNumber);
 
@@ -37,14 +42,13 @@ public class SignificantFigureConverter {
 
         final Integer firstSignificantFigurePosition = numberInfo.getFirstSignificantFigurePosition();
 
-
         if(nonNull(digitBeforeDecimalPoint)) {
             if(numberOfSignificantFigures == getNumberLength(strippedNumber)) {
                 return strippedNumber;
             }
 
             if (numberOfSignificantFigures > getNumberLength(strippedNumber)){
-                return addTrailingZeros(numberOfSignificantFigures, strippedNumber, 1);
+                return addTrailingZeros(numberOfSignificantFigures, strippedNumber, 1, getNumberLength(strippedNumber));
             }
         }
 
@@ -60,7 +64,7 @@ public class SignificantFigureConverter {
         }
 
         if(!roundedStr.contains(".") && isNull((extractedZeros))) {
-            roundedStr = addTrailingZeros(numberOfSignificantFigures, roundedStr, 0);
+            roundedStr = addTrailingZeros(numberOfSignificantFigures, roundedStr, 0, numberInfo.getNumberLength());
         }
 
         return nonNull(extractedZeros) ? (extractedZeros + roundedStr): roundedStr;
@@ -169,23 +173,30 @@ public class SignificantFigureConverter {
 
     private String addTrailingZeros(final int numberOfSignificantFigures,
                                     final String roundedStr,
-                                    final int counter) {
+                                    final int counter,
+                                    final int numberLength) {
 
         final StringBuilder concatNumber = new StringBuilder(roundedStr);
 
-        final int numberLength = getNumberLength(roundedStr);
-
         if(numberOfSignificantFigures > numberLength){
             int zerosToAdd = numberOfSignificantFigures - numberLength + 1;
-            for(int i = counter; i < zerosToAdd  ;i++)
-                if(i==0) {
-                    concatNumber.append(".");
-                } else {
-                    concatNumber.append("0");
-                }
+            createZeros(counter, concatNumber, zerosToAdd);
+        }
+        else if(numberOfSignificantFigures < numberLength && !numberInfo.getOriginalNumber().contains(".")){
+            int zerosToAdd =  (numberLength - numberOfSignificantFigures) + 1;
+            createZeros(1, concatNumber, zerosToAdd);
         }
 
         return concatNumber.toString();
+    }
+
+    private void createZeros(int counter, StringBuilder concatNumber, int zerosToAdd) {
+        for(int i = counter; i < zerosToAdd  ;i++)
+            if(i==0) {
+                concatNumber.append(".");
+            } else {
+                concatNumber.append("0");
+            }
     }
 
     private BigDecimal roundNumber(final String strippedNumber,
@@ -201,7 +212,15 @@ public class SignificantFigureConverter {
                 rounded = newShortNumber.round(new MathContext(numberOfSignificantFigures));
 
             } else if(newShortNumber.toPlainString().contains(".")) {
-                rounded = newShortNumber.add(new BigDecimal("0.01")); // dynamically the zeros to add in front the 1.
+                final String[] newShortNumberSplit = newShortNumber.toPlainString().split("\\.");
+                final int zerosToAddBeforeDecimalPlaces = newShortNumberSplit[0].length() ;
+                final int zerosToAddAfterDecimalPlaces = newShortNumberSplit[1].length() -1 ;
+                final StringBuilder zerosBefore = new StringBuilder();
+
+                createZeros(1, zerosBefore, zerosToAddBeforeDecimalPlaces + 1);
+                createZeros(0, zerosBefore, zerosToAddAfterDecimalPlaces + 1);
+
+                rounded = newShortNumber.add(new BigDecimal(zerosBefore.append("1").toString()));
             } else {
                 rounded = newShortNumber.add(BigDecimal.ONE);
             }
@@ -243,6 +262,43 @@ public class SignificantFigureConverter {
         }
 
         return Arrays.asList(extractedZeros, extractedNumber);
+
+    }
+
+    public String removeLeadingZeros(String number) {
+        if (number.length() <= 1) {
+            return number;
+        }
+
+        char c = number.charAt(0);
+        if (c != '0') {
+            return number;
+        } else {
+            return number.charAt(1) == '.' ? number : removeLeadingZeros(number.substring(1));
+        }
+    }
+
+    public int parseSignificantFigure(final String significantFigures){
+        if(!Pattern.matches("\\d+", significantFigures) || significantFigures.contains(".")){
+            throw new IllegalArgumentException("Whole numbers only");
+        }
+
+        final int numberOfSignificantFigure = Integer.parseInt(significantFigures);
+
+        if(numberOfSignificantFigure<1){
+            throw new IllegalArgumentException("Significant figure needs to be greater than zero");
+        }
+
+        return numberOfSignificantFigure;
+    }
+
+    public void checkNumber(String number) {
+
+        final String regEx = "\\d+([.]\\d{2})?";
+
+        if (!Pattern.matches(regEx, number)){
+            throw new IllegalArgumentException("Not a number");
+        }
 
     }
 }

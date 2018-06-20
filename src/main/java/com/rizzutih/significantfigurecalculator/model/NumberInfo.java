@@ -17,6 +17,8 @@ public class NumberInfo {
 
     private int numberLength;
 
+    private String originalNumber;
+
     public Integer getFirstSignificantFigurePosition() {
         return firstSignificantFigurePosition;
     }
@@ -65,4 +67,11 @@ public class NumberInfo {
         this.numberLength = numberLength;
     }
 
+    public void setOriginalNumber(String originalNumber) {
+        this.originalNumber = originalNumber;
+    }
+
+    public String getOriginalNumber() {
+        return originalNumber;
+    }
 }

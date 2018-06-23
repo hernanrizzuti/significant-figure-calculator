@@ -1,6 +1,7 @@
-package com.rizzutih.significantfigurecalculator;
+package com.rizzutih.significantfigurecalculator.service;
 
 import com.rizzutih.significantfigurecalculator.model.NumberInfo;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -15,18 +16,16 @@ import static java.util.Objects.nonNull;
 /**
  * Created by h.rizzuti on 15/06/2018.
  */
-public class Calculator {
+@Service
+public class CalculatorService {
 
     private NumberInfo numberInfo;
 
-    public Calculator(final NumberInfo numberInfo) {
+    public String calculate(final String number,
+                            final int numberOfSignificantFigures,
+                            final NumberInfo numberInfo) {
+
         this.numberInfo = numberInfo;
-    }
-
-    public String resolver(final String number,
-                           final String significantFigure) {
-
-        final int numberOfSignificantFigures = parseSignificantFigure(significantFigure);
 
         final List<String> zerosAndNumber = extractZerosBeforeSignificantFigure(removeLeadingZeros(number));
 
@@ -278,27 +277,4 @@ public class Calculator {
         }
     }
 
-    public int parseSignificantFigure(final String significantFigures){
-        if(!Pattern.matches("\\d+", significantFigures) || significantFigures.contains(".")){
-            throw new IllegalArgumentException("Whole numbers only");
-        }
-
-        final int numberOfSignificantFigure = Integer.parseInt(significantFigures);
-
-        if(numberOfSignificantFigure<1){
-            throw new IllegalArgumentException("Significant figure needs to be greater than zero");
-        }
-
-        return numberOfSignificantFigure;
-    }
-
-    public void checkNumber(String number) {
-
-        final String regEx = "\\d+([.]\\d{2})?";
-
-        if (!Pattern.matches(regEx, number)){
-            throw new IllegalArgumentException("Not a number");
-        }
-
-    }
 }

@@ -16,7 +16,7 @@ public class CalculatorServiceTest {
     @Before
     public void setUp() {
 
-        calculatorService =  new CalculatorService(new NumberInfo());
+        calculatorService =  new CalculatorService();
     }
 
     @Test
@@ -222,6 +222,7 @@ public class CalculatorServiceTest {
     public void testReturns1Dot1When01Dot1IsPassedIn() {
         assertEquals("1.1", calculatorService.removeLeadingZeros("01.1"));
     }
+
     //O(n^2)
     public void printUnorderedPairs( int[] array) {
 

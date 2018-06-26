@@ -1,6 +1,5 @@
 package com.rizzutih.significantfigurecalculator.service;
 
-import com.rizzutih.significantfigurecalculator.model.NumberInfo;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -8,7 +7,6 @@ import java.math.MathContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -19,13 +17,16 @@ import static java.util.Objects.nonNull;
 @Service
 public class CalculatorService {
 
-    private NumberInfo numberInfo;
+    private Integer firstSignificantFigurePosition;
+
+    private Integer numberOfDigitsBeforeDecimalPlace;
+
+    private int numberLength;
+
+    private String originalNumber;
 
     public String calculate(final String number,
-                            final int numberOfSignificantFigures,
-                            final NumberInfo numberInfo) {
-
-        this.numberInfo = numberInfo;
+                            final int numberOfSignificantFigures) {
 
         final List<String> zerosAndNumber = extractZerosBeforeSignificantFigure(removeLeadingZeros(number));
 
@@ -33,13 +34,11 @@ public class CalculatorService {
 
         final String strippedNumber =  zerosAndNumber.get(1);
 
-        numberInfo.setOriginalNumber(strippedNumber);
+        originalNumber = strippedNumber;
 
         final Integer digitBeforeDecimalPoint = getNumberOfDigitBeforeDecimalPlaces(strippedNumber);
 
         final Character immediateNumber = findImmediateNumberToSignificantFigure(strippedNumber, numberOfSignificantFigures);
-
-        final Integer firstSignificantFigurePosition = numberInfo.getFirstSignificantFigurePosition();
 
         if(nonNull(digitBeforeDecimalPoint)) {
             if(numberOfSignificantFigures == getNumberLength(strippedNumber)) {
@@ -63,7 +62,7 @@ public class CalculatorService {
         }
 
         if(!roundedStr.contains(".") && isNull((extractedZeros))) {
-            roundedStr = addTrailingZeros(numberOfSignificantFigures, roundedStr, 0, numberInfo.getNumberLength());
+            roundedStr = addTrailingZeros(numberOfSignificantFigures, roundedStr, 0, numberLength);
         }
 
         return nonNull(extractedZeros) ? (extractedZeros + roundedStr): roundedStr;
@@ -73,7 +72,7 @@ public class CalculatorService {
     private Integer getNumberOfDigitBeforeDecimalPlaces(final String strippedNumber) {
 
         final Integer digitBeforeDecimalPoint = strippedNumber.contains(".") ? strippedNumber.split("\\.")[0].length() : null;
-        numberInfo.setNumberOfDigitsBeforeDecimalPlace(digitBeforeDecimalPoint);
+        numberOfDigitsBeforeDecimalPlace = digitBeforeDecimalPoint;
 
         return digitBeforeDecimalPoint;
     }
@@ -92,7 +91,7 @@ public class CalculatorService {
         if(nonNull(digitBeforeDecimalPoint)
                 && numberOfSignificantFigures <= digitBeforeDecimalPoint) {
 
-            if (numberInfo.getFirstSignificantFigurePosition() == 0
+            if (firstSignificantFigurePosition == 0
                     && numberOfSignificantFigures == digitBeforeDecimalPoint) {
                 newShortNumber = getShortNumber(strippedNumber, firstSignificantFigurePosition, numberOfSignificantFigures);
             } else if (numberOfSignificantFigures < digitBeforeDecimalPoint) {
@@ -102,7 +101,7 @@ public class CalculatorService {
             }
             rounded = roundNumber(strippedNumber, immediateNumber, newShortNumber, numberOfSignificantFigures);
         } else if  (isNull(digitBeforeDecimalPoint) && isNull((extractedZeros))
-                && numberInfo.getNumberLength() < numberOfSignificantFigures){
+                && numberLength < numberOfSignificantFigures){
             rounded = new BigDecimal(strippedNumber);
         }
         else {
@@ -118,7 +117,7 @@ public class CalculatorService {
 
         int index = length;
 
-        numberInfo.setNumberLength(length);
+        numberLength = length;
 
         for(int i =0; i< number.length(); i++){
 
@@ -135,35 +134,28 @@ public class CalculatorService {
     public Character findImmediateNumberToSignificantFigure(final String number,
                                                             final int numberOfSignificantFigures) {
 
-        final Integer firstSignificantFigurePosition = findFirstSignificantFigurePosition(number);
 
-        numberInfo.setFirstSignificantFigurePosition(firstSignificantFigurePosition);
+        firstSignificantFigurePosition = findFirstSignificantFigurePosition(number);
 
         Character immediateNumber = null;
 
 
         if(!(numberOfSignificantFigures >= getNumberLength(number))) {
-            immediateNumber = number.charAt(firstSignificantFigurePosition + getIndexSuffex(number, numberOfSignificantFigures));
+            immediateNumber = number.charAt(firstSignificantFigurePosition + getIndexSuffix(number, numberOfSignificantFigures));
 
             if (immediateNumber == '.') {
                 immediateNumber = number.charAt(firstSignificantFigurePosition + numberOfSignificantFigures + 1);
-                numberInfo.setDecimalPlacePosition(firstSignificantFigurePosition + numberOfSignificantFigures);
-                numberInfo.setSignificantFigureImmediateNumberPosition(firstSignificantFigurePosition + numberOfSignificantFigures + 1);
-            } else {
-                numberInfo.setSignificantFigureImmediateNumberPosition(firstSignificantFigurePosition + getIndexSuffex(number, numberOfSignificantFigures));
             }
-
-            numberInfo.setSignificantFigureImmediateNumber(immediateNumber);
 
             return immediateNumber;
         }
         return immediateNumber;
     }
 
-    private int getIndexSuffex(String number, int numberOfSignificantFigures) {
+    private int getIndexSuffix(String number, int numberOfSignificantFigures) {
         return number.contains(".")
                 && (!number.contains("0.")) &&
-                numberInfo.getNumberOfDigitsBeforeDecimalPlace() < numberOfSignificantFigures ? numberOfSignificantFigures + 1 : numberOfSignificantFigures;
+                numberOfDigitsBeforeDecimalPlace < numberOfSignificantFigures ? numberOfSignificantFigures + 1 : numberOfSignificantFigures;
     }
 
     private int getNumberLength(final String number) {
@@ -181,7 +173,7 @@ public class CalculatorService {
             int zerosToAdd = numberOfSignificantFigures - numberLength + 1;
             createZeros(counter, concatNumber, zerosToAdd);
         }
-        else if(numberOfSignificantFigures < numberLength && !numberInfo.getOriginalNumber().contains(".")){
+        else if(numberOfSignificantFigures < numberLength && !originalNumber.contains(".")){
             int zerosToAdd =  (numberLength - numberOfSignificantFigures) + 1;
             createZeros(1, concatNumber, zerosToAdd);
         }

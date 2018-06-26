@@ -91,7 +91,6 @@ public class SignificantNumberValidationRuleTest {
        //When
         assertFalse(result.isPresent());
 
-       //Then
     }
 
 }

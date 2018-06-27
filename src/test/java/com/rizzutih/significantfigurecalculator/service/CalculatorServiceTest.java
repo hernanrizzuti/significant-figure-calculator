@@ -1,6 +1,5 @@
 package com.rizzutih.significantfigurecalculator.service;
 
-import com.rizzutih.significantfigurecalculator.model.NumberInfo;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,22 +43,22 @@ public class CalculatorServiceTest {
     }
 
     @Test
-    public void shouldReturn1When101and2SFarePAssedIn() {
+    public void shouldReturn1When101and2SFArePassedIn() {
         assertEquals(Character.valueOf('1'), calculatorService.findImmediateNumberToSignificantFigure("101", 2));
     }
 
     @Test
-    public void shouldReturn1When10dot1WithDPAnd2SFarePAssedIn() {
+    public void shouldReturn1When10dot1WithDPAnd2SFArePassedIn() {
         assertEquals(Character.valueOf('1'), calculatorService.findImmediateNumberToSignificantFigure("10.1", 2));
     }
 
     @Test
-    public void shouldReturn1When0dot101WithDPAnd2SFarePAssedIn() {
+    public void shouldReturn1When0dot101WithDPAnd2SFArePassedIn() {
         assertEquals(Character.valueOf('1'), calculatorService.findImmediateNumberToSignificantFigure("0.101", 2));
     }
 
     @Test
-    public void shouldReturn1When1010WithDPAnd2SFarePAssedIn() {
+    public void shouldReturn1When1010WithDPAnd2SFArePassedIn() {
         assertEquals(Character.valueOf('1'), calculatorService.findImmediateNumberToSignificantFigure("101", 2));
     }
 
@@ -191,6 +190,11 @@ public class CalculatorServiceTest {
     }
 
     @Test
+    public void testReturns1980Dot8When1980Dot80PassedInWith3SignificantFigures() {
+        assertEquals("1980.8", calculatorService.calculate("1980.80", 5));
+    }
+
+    @Test
     public void testReturnsCorrectNumbersWhenDifferentSignificantFigureArePassedIn() {
         //assertEquals("0", calculatorService.calculate("305.459", 0));
         assertEquals("300", calculatorService.calculate("305.459", 1));
@@ -204,7 +208,6 @@ public class CalculatorServiceTest {
     @Test
     public void test() {
         System.out.println(calculatorService.calculate("1529", 1));
-        //2000?
     }
 
     @Test

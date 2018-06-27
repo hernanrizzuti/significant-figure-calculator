@@ -1,7 +1,6 @@
 package com.rizzutih.significantfigurecalculator.web.controller;
 
 import com.rizzutih.significantfigurecalculator.exceptions.FieldValidationErrorException;
-import com.rizzutih.significantfigurecalculator.model.NumberInfo;
 import com.rizzutih.significantfigurecalculator.service.CalculatorService;
 import com.rizzutih.significantfigurecalculator.validator.SignificantFigureCalculatorValidator;
 import com.rizzutih.significantfigurecalculator.web.response.SignificantFigureResponse;

@@ -7,6 +7,7 @@ import java.math.MathContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -36,11 +37,9 @@ public class CalculatorService {
 
         originalNumber = strippedNumber;
 
-        final Integer digitBeforeDecimalPoint = getNumberOfDigitBeforeDecimalPlaces(strippedNumber);
-
         final Character immediateNumber = findImmediateNumberToSignificantFigure(strippedNumber, numberOfSignificantFigures);
 
-        if(nonNull(digitBeforeDecimalPoint)) {
+        if(nonNull(numberOfDigitsBeforeDecimalPlace)) {
             if(numberOfSignificantFigures == getNumberLength(strippedNumber)) {
                 return strippedNumber;
             }
@@ -51,11 +50,11 @@ public class CalculatorService {
         }
 
         final BigDecimal rounded = getRoundedNumber(numberOfSignificantFigures, extractedZeros, strippedNumber,
-                immediateNumber, firstSignificantFigurePosition, digitBeforeDecimalPoint);
+                immediateNumber, firstSignificantFigurePosition, numberOfDigitsBeforeDecimalPlace);
 
         String roundedStr = rounded.toPlainString();
 
-        if (nonNull(digitBeforeDecimalPoint) && numberOfSignificantFigures < digitBeforeDecimalPoint) {
+        if (nonNull(numberOfDigitsBeforeDecimalPlace) && numberOfSignificantFigures < numberOfDigitsBeforeDecimalPlace) {
             roundedStr = rounded.subtract(new BigDecimal(rounded.toPlainString().substring(
                     (firstSignificantFigurePosition + numberOfSignificantFigures)))).toPlainString();
 
@@ -69,12 +68,11 @@ public class CalculatorService {
 
     }
 
-    private Integer getNumberOfDigitBeforeDecimalPlaces(final String strippedNumber) {
+    private Integer setNumberOfDigitBeforeDecimalPlaces(final String strippedNumber) {
 
-        final Integer digitBeforeDecimalPoint = strippedNumber.contains(".") ? strippedNumber.split("\\.")[0].length() : null;
-        numberOfDigitsBeforeDecimalPlace = digitBeforeDecimalPoint;
+        numberOfDigitsBeforeDecimalPlace = strippedNumber.contains(".") ? strippedNumber.split("\\.")[0].length() : null;
 
-        return digitBeforeDecimalPoint;
+        return numberOfDigitsBeforeDecimalPlace;
     }
 
     private BigDecimal getRoundedNumber(final int numberOfSignificantFigures,
@@ -88,8 +86,7 @@ public class CalculatorService {
 
         final BigDecimal rounded;
 
-        if(nonNull(digitBeforeDecimalPoint)
-                && numberOfSignificantFigures <= digitBeforeDecimalPoint) {
+        if(nonNull(digitBeforeDecimalPoint) && numberOfSignificantFigures <= digitBeforeDecimalPoint) {
 
             if (firstSignificantFigurePosition == 0
                     && numberOfSignificantFigures == digitBeforeDecimalPoint) {
@@ -134,11 +131,11 @@ public class CalculatorService {
     public Character findImmediateNumberToSignificantFigure(final String number,
                                                             final int numberOfSignificantFigures) {
 
-
         firstSignificantFigurePosition = findFirstSignificantFigurePosition(number);
 
-        Character immediateNumber = null;
+        setNumberOfDigitBeforeDecimalPlaces(number);
 
+        Character immediateNumber = null;
 
         if(!(numberOfSignificantFigures >= getNumberLength(number))) {
             immediateNumber = number.charAt(firstSignificantFigurePosition + getIndexSuffix(number, numberOfSignificantFigures));
@@ -154,7 +151,7 @@ public class CalculatorService {
 
     private int getIndexSuffix(String number, int numberOfSignificantFigures) {
         return number.contains(".")
-                && (!number.contains("0.")) &&
+                && (!Pattern.matches("0+([.]\\d+)?", number)) &&
                 numberOfDigitsBeforeDecimalPlace < numberOfSignificantFigures ? numberOfSignificantFigures + 1 : numberOfSignificantFigures;
     }
 
